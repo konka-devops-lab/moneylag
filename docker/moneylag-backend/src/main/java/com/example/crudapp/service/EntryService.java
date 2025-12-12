@@ -150,7 +150,6 @@ public class EntryService {
     }
 
     
-    // ========== RELEASE 3.0 - START (Update Functionality) ==========
     public Entry updateEntry(Long id, Entry entryDetails) {
         Optional<Entry> optionalEntry = entryRepository.findById(id);
         
@@ -175,7 +174,6 @@ public class EntryService {
         logger.warn("Update failed: Entry with ID {} not found", id);
         return null;
     }
-    // ========== RELEASE 3.0 - END ==========
     
     private void clearAllEntriesCache() {
         try {

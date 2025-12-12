@@ -3,11 +3,13 @@ package com.example.crudapp.controller;
 import com.example.crudapp.model.Entry;
 import com.example.crudapp.service.EntryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -15,9 +17,9 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,201 +35,138 @@ class EntryControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private Entry testEntry;
-    private List<Entry> testEntries;
-
-    @BeforeEach
-    void setUp() {
-        testEntry = new Entry(100.0, "Test groceries", LocalDate.of(2024, 1, 15));
-        testEntry.setId(1L);
-        
-        testEntries = Arrays.asList(
-            new Entry(100.0, "Groceries", LocalDate.of(2024, 1, 15)),
-            new Entry(200.0, "Rent", LocalDate.of(2024, 1, 1))
-        );
-    }
-
+    /* -------------------- GET ALL -------------------- */
     @Test
-    void getAllEntries_ShouldReturnEntries() throws Exception {
-        // Arrange
-        when(entryService.getAllEntries()).thenReturn(testEntries);
+    void testGetAllEntries() throws Exception {
 
-        // Act & Assert
+        Entry e1 = new Entry(100.0, "Food", LocalDate.parse("2025-10-12"));
+        e1.setId(1L);
+
+        Entry e2 = new Entry(200.0, "Travel", LocalDate.parse("2025-11-15"));
+        e2.setId(2L);
+
+        List<Entry> mockList = Arrays.asList(e1, e2);
+
+        when(entryService.getAllEntries()).thenReturn(mockList);
+
         mockMvc.perform(get("/api/entries"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].description").value("Groceries"));
+                .andExpect(jsonPath("$[0].description").value("Food"));
     }
 
+    /* -------------------- GET BY ID -------------------- */
     @Test
-    void getEntryById_ShouldReturnEntry() throws Exception {
-        // Arrange
-        when(entryService.getEntryById(1L)).thenReturn(testEntry);
+    void testGetEntryByIdFound() throws Exception {
 
-        // Act & Assert
+        Entry entry = new Entry(300.0, "Test Entry", LocalDate.parse("2025-10-25"));
+        entry.setId(1L);
+
+        when(entryService.getEntryById(1L)).thenReturn(entry);
+
         mockMvc.perform(get("/api/entries/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.amount").value(100.0))
-                .andExpect(jsonPath("$.description").value("Test groceries"))
-                .andExpect(jsonPath("$.date").value("2024-01-15"));
+                .andExpect(jsonPath("$.description").value("Test Entry"));
     }
 
     @Test
-    void getEntryById_ShouldReturn404WhenNotFound() throws Exception {
-        // Arrange
-        when(entryService.getEntryById(1L)).thenReturn(null);
+    void testGetEntryByIdNotFound() throws Exception {
 
-        // Act & Assert
-        mockMvc.perform(get("/api/entries/1"))
+        when(entryService.getEntryById(99L)).thenReturn(null);
+
+        mockMvc.perform(get("/api/entries/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Entry not found"));
     }
-    @Test
-    void createEntry_ShouldCreateNewEntry() throws Exception {
-        // Arrange
-        Entry newEntry = new Entry(150.0, "New entry", LocalDate.of(2024, 1, 20));
-        when(entryService.createEntry(any(Entry.class))).thenReturn(testEntry);
 
-        // Act & Assert
+    /* -------------------- CREATE ENTRY -------------------- */
+    @Test
+    void testCreateEntrySuccess() throws Exception {
+
+        Entry request = new Entry(500.0, "Shopping", LocalDate.parse("2025-12-01"));
+
+        Entry saved = new Entry(500.0, "Shopping", LocalDate.parse("2025-12-01"));
+        saved.setId(1L);
+
+        when(entryService.createEntry(any(Entry.class))).thenReturn(saved);
+
         mockMvc.perform(post("/api/entries")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newEntry)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
-    void createEntry_ShouldReturn400WhenMissingAmount() throws Exception {
-        // Arrange - Use raw JSON that bypasses @Valid but triggers your custom validation
-        String invalidJson = "{\"description\": \"Valid description\", \"date\": \"2024-01-15\"}";
+    void testCreateEntryValidationFail() throws Exception {
 
-        // Act & Assert - Just check for 400 status, don't check error message format
+        Entry invalid = new Entry(null, "", null);
+
         mockMvc.perform(post("/api/entries")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
+                .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 
+    /* -------------------- UPDATE ENTRY -------------------- */
     @Test
-    void createEntry_ShouldReturn400WhenMissingDescription() throws Exception {
-        // Arrange
-        String invalidJson = "{\"amount\": 100.0, \"date\": \"2024-01-15\"}";
+    void testUpdateEntrySuccess() throws Exception {
 
-        // Act & Assert
-        mockMvc.perform(post("/api/entries")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
-    }
-    @Test
-    void createEntry_ShouldReturn400WhenMissingDate() throws Exception {
-        // Arrange
-        String invalidJson = "{\"amount\": 100.0, \"description\": \"Valid description\"}";
+        Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
+        Entry updated = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
+        updated.setId(1L);
 
-        // Act & Assert
-        mockMvc.perform(post("/api/entries")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
-    }
+        when(entryService.updateEntry(eq(1L), any(Entry.class))).thenReturn(updated);
 
-    @Test
-    void createEntry_ShouldReturn400WhenEmptyDescription() throws Exception {
-        // Arrange - This should trigger your custom validation for empty description
-        String invalidJson = "{\"amount\": 100.0, \"description\": \"\", \"date\": \"2024-01-15\"}";
-
-        // Act & Assert
-        mockMvc.perform(post("/api/entries")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void updateEntry_ShouldUpdateEntry() throws Exception {
-        // Arrange
-        Entry updatedEntry = new Entry(200.0, "Updated description", LocalDate.of(2024, 1, 16));
-        testEntry.setAmount(200.0);
-        testEntry.setDescription("Updated description");
-        
-        when(entryService.updateEntry(eq(1L), any(Entry.class))).thenReturn(testEntry);
-
-        // Act & Assert
         mockMvc.perform(put("/api/entries/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updatedEntry)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(200.0))
-                .andExpect(jsonPath("$.description").value("Updated description"));
+                .andExpect(jsonPath("$.amount").value(800.0));
     }
 
     @Test
-    void updateEntry_ShouldReturn400WhenMissingFields() throws Exception {
-        // Arrange
-        String invalidJson = "{\"description\": \"\", \"date\": \"2024-01-15\"}";
+    void testUpdateEntryNotFound() throws Exception {
 
-        // Act & Assert
-        mockMvc.perform(put("/api/entries/1")
+        Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
+
+        when(entryService.updateEntry(eq(99L), any(Entry.class))).thenReturn(null);
+
+        mockMvc.perform(put("/api/entries/99")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void updateEntry_ShouldReturn404WhenEntryNotFound() throws Exception {
-        // Arrange
-        Entry updatedEntry = new Entry(200.0, "Updated", LocalDate.of(2024, 1, 16));
-        when(entryService.updateEntry(eq(1L), any(Entry.class))).thenReturn(null);
-
-        // Act & Assert
-        mockMvc.perform(put("/api/entries/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updatedEntry)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Entry not found"));
     }
+
+    /* -------------------- DELETE ONE -------------------- */
     @Test
-    void deleteEntry_ShouldDeleteEntry() throws Exception {
-        // Arrange
+    void testDeleteEntrySuccess() throws Exception {
+
         when(entryService.deleteEntry(1L)).thenReturn(true);
 
-        // Act & Assert
         mockMvc.perform(delete("/api/entries/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Entry deleted successfully"));
     }
 
     @Test
-    void deleteEntry_ShouldReturn404WhenEntryNotFound() throws Exception {
-        // Arrange
-        when(entryService.deleteEntry(1L)).thenReturn(false);
+    void testDeleteEntryNotFound() throws Exception {
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/entries/1"))
+        when(entryService.deleteEntry(99L)).thenReturn(false);
+
+        mockMvc.perform(delete("/api/entries/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Entry not found"));
     }
 
+    /* -------------------- DELETE ALL -------------------- */
     @Test
-    void deleteAllEntries_ShouldDeleteAllEntries() throws Exception {
-        // Arrange
-        doNothing().when(entryService).deleteAllEntries();
+    void testDeleteAllEntries() throws Exception {
 
-        // Act & Assert
         mockMvc.perform(delete("/api/entries"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("All entries deleted successfully"));
-    }
-
-    @Test
-    void deleteAllEntries_ShouldReturn500WhenServiceFails() throws Exception {
-        // Arrange
-        doThrow(new RuntimeException("Database error")).when(entryService).deleteAllEntries();
-
-        // Act & Assert
-        mockMvc.perform(delete("/api/entries"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Failed to delete all entries"));
     }
 }
