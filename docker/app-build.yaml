@@ -13,6 +13,6 @@ services:
 
   crud-frontend:
     build:
-      context: ../crud-frontend
+      context: moneylag-frontend
       dockerfile: Dockerfile
     image: crud-frontend:v1
