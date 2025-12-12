@@ -27,14 +27,14 @@ public class CorsConfig implements WebMvcConfigurer {
             logger.info("🔓 CORS is open (no ALLOWED_ORIGIN set)");
             registry.addMapping("/**")
                     .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                     .allowedHeaders("Content-Type", "Authorization")
                     .allowCredentials(true);
         } else {
             logger.info("✅ CORS enabled for: {}", allowedOrigin);
             registry.addMapping("/**")
                     .allowedOrigins(allowedOrigin)
-                    .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                     .allowedHeaders("Content-Type", "Authorization")
                     .allowCredentials(true);
         }

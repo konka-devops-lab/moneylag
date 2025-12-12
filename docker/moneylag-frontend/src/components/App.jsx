@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   addEntry,
   getEntries,
@@ -16,12 +16,12 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-/* ✅ FEATURE TOGGLES */
+/* ⭐ FEATURE TOGGLES (KEEPING EXACTLY AS YOU WANT) */
 const ENABLE_UPDATE = process.env.REACT_APP_ENABLE_UPDATE === "true";
 const ENABLE_DELETE_ALL = process.env.REACT_APP_ENABLE_DELETE_ALL === "true";
 
 function App() {
-  const [page, setPage] = useState(1); 
+  const [page, setPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [amount, setAmount] = useState("");
@@ -36,16 +36,42 @@ function App() {
 
   const rowsPerPage = 5;
 
-  // ✅ ADD ENTRY
-  const handleAdd = () => {
+  /* INITIAL LOAD */
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const loadEntries = async () => {
+    const list = await getEntries();
+
+    // ⭐ FIX: ALWAYS convert API response into an array
+    let cleaned;
+
+    if (Array.isArray(list)) {
+      cleaned = list;
+    } else if (list && Array.isArray(list.data)) {
+      cleaned = list.data;
+    } else if (list && Array.isArray(list.entries)) {
+      cleaned = list.entries;
+    } else if (list && typeof list === "object") {
+      cleaned = [list];
+    } else {
+      cleaned = [];
+    }
+
+    setEntries(cleaned);
+  };
+
+  // ADD ENTRY
+  const handleAdd = async () => {
     if (!amount || !description || !date) {
       setStatus("error");
       setMessage("❌ All fields required");
       return;
     }
 
-    addEntry({ amount, description, date });
-    setEntries(getEntries());
+    await addEntry({ amount, description, date });
+    await loadEntries();
 
     setAmount("");
     setDescription("");
@@ -55,51 +81,53 @@ function App() {
     setMessage("✅ Entry Added Successfully");
   };
 
-  // ✅ ENABLE EDIT (RELEASE-2)
+  // ENABLE EDIT (TOGGLE SAFE)
   const handleEdit = (id) => {
     if (!ENABLE_UPDATE) return;
     setEditId(id);
   };
 
-  // ✅ SAVE (RELEASE-2)
-  const handleSave = (id, item) => {
+  // SAVE UPDATE (TOGGLE SAFE)
+  const handleSave = async (id, item) => {
     if (!ENABLE_UPDATE) return;
 
-    updateEntry(id, item);
-    setEntries(getEntries());
+    await updateEntry(id, item);
+    await loadEntries();
     setEditId(null);
 
     setStatus("success");
     setMessage("✅ Entry Updated Successfully");
   };
 
-  // ✅ DELETE ONE (RELEASE-1)
-  const handleDelete = (id) => {
-    deleteEntry(id);
-    setEntries(getEntries());
+  // DELETE ONE
+  const handleDelete = async (id) => {
+    await deleteEntry(id);
+    await loadEntries();
 
     setStatus("success");
     setMessage("✅ Entry Deleted Successfully");
   };
 
-  // ✅ DELETE ALL (RELEASE-3)
-  const handleDeleteAll = () => {
+  // DELETE ALL (TOGGLE SAFE)
+  const handleDeleteAll = async () => {
     if (!ENABLE_DELETE_ALL) return;
 
     const confirmDelete = window.confirm(
       "Are you sure you want to delete ALL records?"
     );
-
     if (!confirmDelete) return;
 
-    entries.forEach((item) => deleteEntry(item.id));
-    setEntries([]);
+    for (const item of entries) {
+      await deleteEntry(item.id);
+    }
+
+    await loadEntries();
 
     setStatus("success");
     setMessage("✅ All Entries Deleted Successfully");
   };
 
-  // ✅ PAGINATION
+  // PAGINATION
   const totalPages = Math.ceil(entries.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentRows = entries.slice(startIndex, startIndex + rowsPerPage);
@@ -107,7 +135,7 @@ function App() {
   return (
     <div className="container">
 
-      {/* ✅ PAGE 1: ENTRY */}
+      {/* PAGE 1: ENTRY PAGE */}
       {page === 1 && (
         <>
           <h2>MoneyLag Entry</h2>
@@ -137,7 +165,6 @@ function App() {
           <div
             className="bottom-right"
             onClick={() => {
-              setEntries(getEntries());
               setCurrentPage(1);
               setPage(2);
             }}
@@ -147,12 +174,11 @@ function App() {
         </>
       )}
 
-      {/* ✅ PAGE 2: RECORDS */}
+      {/* PAGE 2: RECORDS PAGE */}
       {page === 2 && (
         <>
           <h2>MoneyLag Records</h2>
 
-          {/* ✅ DELETE ALL ONLY IF RELEASE-3 */}
           {ENABLE_DELETE_ALL && entries.length > 0 && (
             <div style={{ marginBottom: "10px" }}>
               <button onClick={handleDeleteAll}>Delete All</button>
@@ -179,9 +205,7 @@ function App() {
                   <input
                     type="text"
                     defaultValue={item.description}
-                    onChange={(e) =>
-                      (item.description = e.target.value)
-                    }
+                    onChange={(e) => (item.description = e.target.value)}
                   />
 
                   <input
@@ -203,7 +227,6 @@ function App() {
                   <span>{item.date}</span>
 
                   <div>
-                    {/* ✅ UPDATE ONLY IF RELEASE-2 */}
                     {ENABLE_UPDATE && (
                       <button onClick={() => handleEdit(item.id)}>
                         Update
@@ -219,19 +242,17 @@ function App() {
             </div>
           ))}
 
-          {/* ✅ PAGINATION */}
+          {/* PAGINATION */}
           <div className="pagination">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (num) => (
-                <span
-                  key={num}
-                  className={currentPage === num ? "active-page" : ""}
-                  onClick={() => setCurrentPage(num)}
-                >
-                  {num}
-                </span>
-              )
-            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+              <span
+                key={num}
+                className={currentPage === num ? "active-page" : ""}
+                onClick={() => setCurrentPage(num)}
+              >
+                {num}
+              </span>
+            ))}
           </div>
 
           <div className="bottom-left" onClick={() => setPage(1)}>
@@ -244,7 +265,7 @@ function App() {
         </>
       )}
 
-      {/* ✅ PAGE 3: INSIGHTS */}
+      {/* PAGE 3: INSIGHTS PAGE */}
       {page === 3 && (
         <>
           <h2>Insights - Spending Chart</h2>
@@ -269,7 +290,7 @@ function App() {
         </>
       )}
 
-      {/* ✅ STATUS MESSAGE */}
+      {/* STATUS MESSAGE */}
       {message && (
         <p className={status === "success" ? "success" : "error"}>
           {message}
