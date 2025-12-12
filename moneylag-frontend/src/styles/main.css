@@ -1,0 +1,109 @@
+.container {
+  width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+input {
+  width: 90%;
+  padding: 8px;
+  margin: 8px 0;
+}
+
+button {
+  margin: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.record {
+  border: 1px solid gray;
+  margin: 10px;
+  padding: 10px;
+}
+
+.success {
+  color: green;
+  font-weight: bold;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+.top-nav {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.top-nav span.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.bottom-right {
+  margin-top: 20px;
+  text-align: right;
+  font-size: 18px;
+  cursor: pointer;
+  color: blue;
+}
+
+.bottom-left {
+  margin-top: 20px;
+  text-align: left;
+  font-size: 18px;
+  cursor: pointer;
+  color: blue;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr 2fr;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 8px;
+}
+
+.header {
+  font-weight: bold;
+  background-color: #f3f3f3;
+}
+
+.row span {
+  text-align: center;
+}
+
+.row input {
+  padding: 6px;
+}
+
+.row button {
+  margin-left: 6px;
+}
+.pagination {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.pagination span {
+  margin: 0 6px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border: 1px solid gray;
+}
+
+.active-page {
+  font-weight: bold;
+  background-color: black;
+  color: white;
+}
