@@ -27,5 +27,5 @@ services:
     restart: unless-stopped
 
 networks:
-  crud:
+  moneylag_crud:
     external: true
