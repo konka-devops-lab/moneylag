@@ -9,7 +9,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - crud
+      - moneylag_crud
     restart: unless-stopped
 
   grafana:
@@ -23,7 +23,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - crud
+      - moneylag_crud
     restart: unless-stopped
 
 networks:
