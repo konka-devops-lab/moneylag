@@ -14,6 +14,9 @@ groups:
         data:
           - refId: A
             datasourceUid: prometheus
+            relativeTimeRange:
+              from: 60
+              to: 0
             model:
               expr: up{job="springboot-crud-app"} == 0
               instant: true
@@ -33,6 +36,9 @@ groups:
         data:
           - refId: A
             datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
             model:
               expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0
               instant: false
@@ -52,6 +58,9 @@ groups:
         data:
           - refId: A
             datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
             model:
               expr: |
                 histogram_quantile(
@@ -75,6 +84,9 @@ groups:
         data:
           - refId: A
             datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
             model:
               expr: |
                 (
@@ -99,6 +111,9 @@ groups:
         data:
           - refId: A
             datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
             model:
               expr: |
                 hikaricp_connections_active
