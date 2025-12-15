@@ -9,7 +9,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - moneylag_crud
+      - application-stack_crud
     restart: unless-stopped
 
   grafana:
@@ -20,12 +20,13 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_PASSWORD_POLICY_ENABLED=false
     depends_on:
       - prometheus
     networks:
-      - moneylag_crud
+      - application-stack_crud
     restart: unless-stopped
 
 networks:
-  moneylag_crud:
+  application-stack_crud:
     external: true
