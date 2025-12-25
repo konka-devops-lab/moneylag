@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile
     image: crud-mysql:v1
 
-  crud-backend:
-    build:
-      context: ../moneylag-backend
-      dockerfile: Dockerfile
-    image: crud-backend:v1
+  # crud-backend:
+  #   build:
+  #     context: ../moneylag-backend
+  #     dockerfile: Dockerfile
+  #   image: crud-backend:v1
 
   # crud-frontend:
   #   build:
