@@ -181,9 +181,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestPropertySource;
 
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -197,10 +198,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = EntryController.class)
-@TestPropertySource(properties = {
-        "FEATURE_UPDATE=true",
-        "FEATURE_DELETE_ALL=true"
-})
 class EntryControllerTest {
 
     @Autowired
@@ -211,6 +208,17 @@ class EntryControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    // ================= FEATURE FLAGS (TEST CONTROL) =================
+    static boolean featureUpdateEnabled = true;
+    static boolean featureDeleteAllEnabled = true;
+
+    @DynamicPropertySource
+    static void overrideProperties(DynamicPropertyRegistry registry) {
+        registry.add("FEATURE_UPDATE", () -> featureUpdateEnabled);
+        registry.add("FEATURE_DELETE_ALL", () -> featureDeleteAllEnabled);
+    }
+    // ===============================================================
 
     /* -------------------- GET ALL -------------------- */
     @Test
@@ -283,6 +291,8 @@ class EntryControllerTest {
     /* -------------------- UPDATE -------------------- */
     @Test
     void testUpdateEntrySuccess() throws Exception {
+        featureUpdateEnabled = true;
+
         Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
         Entry updated = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
         updated.setId(1L);
@@ -298,6 +308,8 @@ class EntryControllerTest {
 
     @Test
     void testUpdateEntryNotFound() throws Exception {
+        featureUpdateEnabled = true;
+
         Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
 
         when(entryService.updateEntry(eq(99L), any(Entry.class))).thenReturn(null);
@@ -309,10 +321,10 @@ class EntryControllerTest {
                 .andExpect(jsonPath("$.error").value("Entry not found"));
     }
 
-    /* -------------------- UPDATE DISABLED -------------------- */
     @Test
-    @TestPropertySource(properties = "FEATURE_UPDATE=false")
     void testUpdateEntryFeatureDisabled() throws Exception {
+        featureUpdateEnabled = false;
+
         Entry request = new Entry(900.0, "Blocked", LocalDate.parse("2025-12-25"));
 
         mockMvc.perform(put("/api/entries/1")
@@ -320,6 +332,8 @@ class EntryControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotImplemented())
                 .andExpect(jsonPath("$.error").value("Update feature is disabled"));
+
+        featureUpdateEnabled = true; // reset
     }
 
     /* -------------------- DELETE ONE -------------------- */
@@ -344,16 +358,21 @@ class EntryControllerTest {
     /* -------------------- DELETE ALL -------------------- */
     @Test
     void testDeleteAllEntriesSuccess() throws Exception {
+        featureDeleteAllEnabled = true;
+
         mockMvc.perform(delete("/api/entries"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("All entries deleted successfully"));
     }
 
     @Test
-    @TestPropertySource(properties = "FEATURE_DELETE_ALL=false")
     void testDeleteAllEntriesFeatureDisabled() throws Exception {
+        featureDeleteAllEnabled = false;
+
         mockMvc.perform(delete("/api/entries"))
                 .andExpect(status().isNotImplemented())
                 .andExpect(jsonPath("$.error").value("Delete-all feature is disabled"));
+
+        featureDeleteAllEnabled = true; // reset
     }
 }
