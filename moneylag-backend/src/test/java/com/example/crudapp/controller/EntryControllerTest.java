@@ -175,33 +175,6 @@ package com.example.crudapp.controller;
 import com.example.crudapp.model.Entry;
 import com.example.crudapp.service.EntryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-package com.example.crudapp.controller;
-
-import com.example.crudapp.model.Entry;
-import com.example.crudapp.service.EntryService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -338,9 +311,7 @@ class EntryControllerTest {
 
         when(entryService.updateEntry(eq(99L), any(Entry.class))).thenReturn(null);
 
-        mockMvc.perform(put("/api/entries/99")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(put("/api/entries/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Entry not found"));
     }
@@ -357,7 +328,7 @@ class EntryControllerTest {
                 .andExpect(status().isNotImplemented())
                 .andExpect(jsonPath("$.error").value("Update feature is disabled"));
 
-        featureUpdateEnabled = true; // reset
+        featureUpdateEnabled = true;
     }
 
     /* -------------------- DELETE ONE -------------------- */
@@ -399,6 +370,6 @@ class EntryControllerTest {
                 .andExpect(jsonPath("$.error")
                         .value("Delete-all feature is disabled"));
 
-        featureDeleteAllEnabled = true; // reset
+        featureDeleteAllEnabled = true;
     }
 }
