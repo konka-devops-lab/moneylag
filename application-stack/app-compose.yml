@@ -18,26 +18,26 @@ services:
     networks:
       - crud
 
-  crud-backend:
-    image: crud-backend:v1
-    container_name: crud-backend
-    environment:
-      DB_HOST: crud-mysql
-      DB_NAME: crud_app
-      DB_USER: crud
-      DB_PASSWORD: CrudApp@1
-      REDIS_HOST: crud-redis
-      REDIS_SSL: "false"
-      FEATURE_UPDATE: "true"
-      FEATURE_DELETE_ALL: "true"
-    depends_on:
-      - mysql
-      - crud-redis
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-    networks:
-      - crud
+  # crud-backend:
+  #   image: crud-backend:v1
+  #   container_name: crud-backend
+  #   environment:
+  #     DB_HOST: crud-mysql
+  #     DB_NAME: crud_app
+  #     DB_USER: crud
+  #     DB_PASSWORD: CrudApp@1
+  #     REDIS_HOST: crud-redis
+  #     REDIS_SSL: "false"
+  #     FEATURE_UPDATE: "true"
+  #     FEATURE_DELETE_ALL: "true"
+  #   depends_on:
+  #     - mysql
+  #     - crud-redis
+  #   ports:
+  #     - "8080:8080"
+  #   restart: unless-stopped
+  #   networks:
+  #     - crud
 
   # crud-frontend:
   #   image: crud-frontend:v1
