@@ -197,6 +197,30 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+package com.example.crudapp.controller;
+
+import com.example.crudapp.model.Entry;
+import com.example.crudapp.service.EntryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @WebMvcTest(controllers = EntryController.class)
 class EntryControllerTest {
 
@@ -209,7 +233,7 @@ class EntryControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // ================= FEATURE FLAGS (TEST CONTROL) =================
+    // ========= FEATURE FLAGS (TEST CONTROL) =========
     static boolean featureUpdateEnabled = true;
     static boolean featureDeleteAllEnabled = true;
 
@@ -218,7 +242,7 @@ class EntryControllerTest {
         registry.add("FEATURE_UPDATE", () -> featureUpdateEnabled);
         registry.add("FEATURE_DELETE_ALL", () -> featureDeleteAllEnabled);
     }
-    // ===============================================================
+    // ===============================================
 
     /* -------------------- GET ALL -------------------- */
     @Test
@@ -362,7 +386,8 @@ class EntryControllerTest {
 
         mockMvc.perform(delete("/api/entries"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("All entries deleted successfully"));
+                .andExpect(jsonPath("$.message")
+                        .value("All entries deleted successfully"));
     }
 
     @Test
@@ -371,7 +396,8 @@ class EntryControllerTest {
 
         mockMvc.perform(delete("/api/entries"))
                 .andExpect(status().isNotImplemented())
-                .andExpect(jsonPath("$.error").value("Delete-all feature is disabled"));
+                .andExpect(jsonPath("$.error")
+                        .value("Delete-all feature is disabled"));
 
         featureDeleteAllEnabled = true; // reset
     }
