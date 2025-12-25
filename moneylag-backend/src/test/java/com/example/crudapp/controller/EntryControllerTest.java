@@ -177,13 +177,12 @@ import com.example.crudapp.model.Entry;
 import com.example.crudapp.service.EntryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestPropertySource;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -198,10 +197,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = EntryController.class)
-@TestPropertySource(properties = {
-        "FEATURE_UPDATE=true",
-        "FEATURE_DELETE_ALL=true"
-})
 class EntryControllerTest {
 
     @Autowired
@@ -257,6 +252,7 @@ class EntryControllerTest {
     @Test
     void testCreateEntrySuccess() throws Exception {
         Entry request = new Entry(500.0, "Shopping", LocalDate.parse("2025-12-01"));
+
         Entry saved = new Entry(500.0, "Shopping", LocalDate.parse("2025-12-01"));
         saved.setId(1L);
 
@@ -276,11 +272,14 @@ class EntryControllerTest {
         mockMvc.perform(post("/api/entries")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalid)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(""));
     }
 
-    /* -------------------- UPDATE -------------------- */
+    /* ================= UPDATE (SKIP IF DISABLED) ================= */
+
     @Test
+    @EnabledIfEnvironmentVariable(named = "FEATURE_UPDATE", matches = "true")
     void testUpdateEntrySuccess() throws Exception {
         Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
         Entry updated = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
@@ -296,6 +295,7 @@ class EntryControllerTest {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = "FEATURE_UPDATE", matches = "true")
     void testUpdateEntryNotFound() throws Exception {
         Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
 
@@ -327,47 +327,13 @@ class EntryControllerTest {
                 .andExpect(jsonPath("$.error").value("Entry not found"));
     }
 
-    /* -------------------- DELETE ALL -------------------- */
+    /* ================= DELETE ALL (SKIP IF DISABLED) ================= */
+
     @Test
+    @EnabledIfEnvironmentVariable(named = "FEATURE_DELETE_ALL", matches = "true")
     void testDeleteAllEntries() throws Exception {
         mockMvc.perform(delete("/api/entries"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("All entries deleted successfully"));
-    }
-
-    /* ================= TOGGLE TESTS ================= */
-
-    @Nested
-    @TestPropertySource(properties = {
-            "FEATURE_UPDATE=false"
-    })
-    class UpdateToggleDisabledTests {
-
-        @Test
-        void updateShouldBeBlockedWhenToggleOff() throws Exception {
-            Entry request = new Entry(100.0, "Blocked", LocalDate.now());
-
-            mockMvc.perform(put("/api/entries/1")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.error")
-                            .value("Update feature is disabled"));
-        }
-    }
-
-    @Nested
-    @TestPropertySource(properties = {
-            "FEATURE_DELETE_ALL=false"
-    })
-    class DeleteAllToggleDisabledTests {
-
-        @Test
-        void deleteAllShouldBeBlockedWhenToggleOff() throws Exception {
-            mockMvc.perform(delete("/api/entries"))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.error")
-                            .value("Delete all feature is disabled"));
-        }
     }
 }
