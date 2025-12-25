@@ -26,8 +26,8 @@ services:
       DB_PASSWORD: CrudApp@1
       REDIS_HOST: crud-redis
       REDIS_SSL: "false"
-      ENABLE_UPDATE: true
-      ENABLE_DELETE_ALL: true
+      FEATURE_UPDATE: "true"
+      FEATURE_DELETE_ALL: "true"
     depends_on:
       - mysql
       - crud-redis
