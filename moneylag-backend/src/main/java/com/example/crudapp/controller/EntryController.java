@@ -179,19 +179,18 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class EntryController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(EntryController.class);
-    
+
     @Autowired
     private EntryService entryService;
-    
-    // Add these two lines for toggle features (same as React)
-    @Value("${ENABLE_UPDATE:true}")
-    private boolean enableUpdate;
-    
-    @Value("${ENABLE_DELETE_ALL:true}")
-    private boolean enableDeleteAll;
-    
+
+    @Value("${FEATURE_UPDATE:true}")
+    private boolean featureUpdateEnabled;
+
+    @Value("${FEATURE_DELETE_ALL:true}")
+    private boolean featureDeleteAllEnabled;
+
     @GetMapping("/entries")
     public ResponseEntity<List<Entry>> getAllEntries() {
         try {
@@ -202,7 +201,7 @@ public class EntryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     @GetMapping("/entries/{id}")
     public ResponseEntity<?> getEntryById(@PathVariable Long id) {
         try {
@@ -221,26 +220,26 @@ public class EntryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     @PostMapping("/entries")
     public ResponseEntity<?> createEntry(@Valid @RequestBody Entry entry) {
         try {
-            if (entry.getAmount() == null || entry.getDescription() == null || 
+            if (entry.getAmount() == null || entry.getDescription() == null ||
                 entry.getDescription().trim().isEmpty()) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Amount and description are required");
                 return ResponseEntity.badRequest().body(error);
             }
-            
+
             if (entry.getDate() == null) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Date is required");
                 return ResponseEntity.badRequest().body(error);
             }
-            
+
             Entry savedEntry = entryService.createEntry(entry);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedEntry);
-            
+
         } catch (Exception e) {
             logger.error("Error creating entry", e);
             Map<String, String> error = new HashMap<>();
@@ -248,32 +247,32 @@ public class EntryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     @PutMapping("/entries/{id}")
     public ResponseEntity<?> updateEntry(@PathVariable Long id, @Valid @RequestBody Entry entryDetails) {
-        // Check toggle - if false, block the request
-        if (!enableUpdate) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Update feature is disabled");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
-        }
-        
         try {
-            if (entryDetails.getAmount() == null || entryDetails.getDescription() == null || 
+
+            if (!featureUpdateEnabled) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Update feature is disabled");
+                return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(error);
+            }
+
+            if (entryDetails.getAmount() == null || entryDetails.getDescription() == null ||
                 entryDetails.getDescription().trim().isEmpty()) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Amount and description are required");
                 return ResponseEntity.badRequest().body(error);
             }
-            
+
             if (entryDetails.getDate() == null) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Date is required");
                 return ResponseEntity.badRequest().body(error);
             }
-            
+
             Entry updatedEntry = entryService.updateEntry(id, entryDetails);
-            
+
             if (updatedEntry != null) {
                 return ResponseEntity.ok(updatedEntry);
             } else {
@@ -281,7 +280,7 @@ public class EntryController {
                 error.put("error", "Entry not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
             }
-            
+
         } catch (Exception e) {
             logger.error("Error updating entry with id: " + id, e);
             Map<String, String> error = new HashMap<>();
@@ -289,12 +288,12 @@ public class EntryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     @DeleteMapping("/entries/{id}")
     public ResponseEntity<?> deleteEntry(@PathVariable Long id) {
         try {
             boolean deleted = entryService.deleteEntry(id);
-            
+
             if (deleted) {
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "Entry deleted successfully");
@@ -304,7 +303,7 @@ public class EntryController {
                 error.put("error", "Entry not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
             }
-            
+
         } catch (Exception e) {
             logger.error("Error deleting entry", e);
             Map<String, String> error = new HashMap<>();
@@ -312,22 +311,22 @@ public class EntryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     @DeleteMapping("/entries")
     public ResponseEntity<?> deleteAllEntries() {
-        // Check toggle - if false, block the request
-        if (!enableDeleteAll) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Delete All feature is disabled");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
-        }
-        
         try {
+
+            if (!featureDeleteAllEnabled) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Delete-all feature is disabled");
+                return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(error);
+            }
+
             entryService.deleteAllEntries();
             Map<String, String> response = new HashMap<>();
             response.put("message", "All entries deleted successfully");
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             logger.error("Error deleting all entries", e);
             Map<String, String> error = new HashMap<>();
