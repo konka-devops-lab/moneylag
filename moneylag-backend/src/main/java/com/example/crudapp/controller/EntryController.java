@@ -1,3 +1,164 @@
+// package com.example.crudapp.controller;
+
+// import com.example.crudapp.model.Entry;
+// import com.example.crudapp.service.EntryService;
+// import jakarta.validation.Valid;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.http.HttpStatus;
+// import org.springframework.http.ResponseEntity;
+// import org.springframework.web.bind.annotation.*;
+
+// import java.util.HashMap;
+// import java.util.List;
+// import java.util.Map;
+
+// @RestController
+// @RequestMapping("/api")
+// public class EntryController {
+    
+//     private static final Logger logger = LoggerFactory.getLogger(EntryController.class);
+    
+//     @Autowired
+//     private EntryService entryService;
+    
+//     @GetMapping("/entries")
+//     public ResponseEntity<List<Entry>> getAllEntries() {
+//         try {
+//             List<Entry> entries = entryService.getAllEntries();
+//             return ResponseEntity.ok(entries);
+//         } catch (Exception e) {
+//             logger.error("Error fetching entries", e);
+//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//         }
+//     }
+    
+//     @GetMapping("/entries/{id}")
+//     public ResponseEntity<?> getEntryById(@PathVariable Long id) {
+//         try {
+//             Entry entry = entryService.getEntryById(id);
+//             if (entry != null) {
+//                 return ResponseEntity.ok(entry);
+//             } else {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Entry not found");
+//                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+//             }
+//         } catch (Exception e) {
+//             logger.error("Error fetching entry with id: " + id, e);
+//             Map<String, String> error = new HashMap<>();
+//             error.put("error", "Failed to fetch entry");
+//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//         }
+//     }
+    
+//     @PostMapping("/entries")
+//     public ResponseEntity<?> createEntry(@Valid @RequestBody Entry entry) {
+//         try {
+//             if (entry.getAmount() == null || entry.getDescription() == null || 
+//                 entry.getDescription().trim().isEmpty()) {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Amount and description are required");
+//                 return ResponseEntity.badRequest().body(error);
+//             }
+            
+//             // ========== RELEASE 2.0 - START (Enhanced Validation with Date) ==========
+//             if (entry.getDate() == null) {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Date is required");
+//                 return ResponseEntity.badRequest().body(error);
+//             }
+//             // ========== RELEASE 2.0 - END ==========
+            
+//             Entry savedEntry = entryService.createEntry(entry);
+//             return ResponseEntity.status(HttpStatus.CREATED).body(savedEntry);
+            
+//         } catch (Exception e) {
+//             logger.error("Error creating entry", e);
+//             Map<String, String> error = new HashMap<>();
+//             error.put("error", "Failed to insert entry");
+//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//         }
+//     }
+    
+//     // ========== RELEASE 3.0 - START (Update Functionality) ==========
+//     @PutMapping("/entries/{id}")
+//     public ResponseEntity<?> updateEntry(@PathVariable Long id, @Valid @RequestBody Entry entryDetails) {
+//         try {
+           
+//             if (entryDetails.getAmount() == null || entryDetails.getDescription() == null || 
+//                 entryDetails.getDescription().trim().isEmpty()) {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Amount and description are required");
+//                 return ResponseEntity.badRequest().body(error);
+//             }
+            
+            
+           
+//             if (entryDetails.getDate() == null) {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Date is required");
+//                 return ResponseEntity.badRequest().body(error);
+//             }
+           
+            
+//             Entry updatedEntry = entryService.updateEntry(id, entryDetails);
+            
+//             if (updatedEntry != null) {
+//                 return ResponseEntity.ok(updatedEntry);
+//             } else {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Entry not found");
+//                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+//             }
+            
+//         } catch (Exception e) {
+//             logger.error("Error updating entry with id: " + id, e);
+//             Map<String, String> error = new HashMap<>();
+//             error.put("error", "Failed to update entry");
+//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//         }
+//     }
+    
+//     @DeleteMapping("/entries/{id}")
+//     public ResponseEntity<?> deleteEntry(@PathVariable Long id) {
+//         try {
+//             boolean deleted = entryService.deleteEntry(id);
+            
+//             if (deleted) {
+//                 Map<String, String> response = new HashMap<>();
+//                 response.put("message", "Entry deleted successfully");
+//                 return ResponseEntity.ok(response);
+//             } else {
+//                 Map<String, String> error = new HashMap<>();
+//                 error.put("error", "Entry not found");
+//                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+//             }
+            
+//         } catch (Exception e) {
+//             logger.error("Error deleting entry", e);
+//             Map<String, String> error = new HashMap<>();
+//             error.put("error", "Failed to delete entry");
+//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//         }
+//     }
+//     @DeleteMapping("/entries")
+//     public ResponseEntity<?> deleteAllEntries() {
+//         try {
+//             entryService.deleteAllEntries();
+//             Map<String, String> response = new HashMap<>();
+//             response.put("message", "All entries deleted successfully");
+//             return ResponseEntity.ok(response);
+            
+//         } catch (Exception e) {
+//             logger.error("Error deleting all entries", e);
+//             Map<String, String> error = new HashMap<>();
+//             error.put("error", "Failed to delete all entries");
+//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//         }
+//     }
+// }
 package com.example.crudapp.controller;
 
 import com.example.crudapp.model.Entry;
@@ -6,6 +167,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +184,13 @@ public class EntryController {
     
     @Autowired
     private EntryService entryService;
+    
+    // Add these two lines for toggle features (same as React)
+    @Value("${ENABLE_UPDATE:true}")
+    private boolean enableUpdate;
+    
+    @Value("${ENABLE_DELETE_ALL:true}")
+    private boolean enableDeleteAll;
     
     @GetMapping("/entries")
     public ResponseEntity<List<Entry>> getAllEntries() {
@@ -63,13 +232,11 @@ public class EntryController {
                 return ResponseEntity.badRequest().body(error);
             }
             
-            // ========== RELEASE 2.0 - START (Enhanced Validation with Date) ==========
             if (entry.getDate() == null) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Date is required");
                 return ResponseEntity.badRequest().body(error);
             }
-            // ========== RELEASE 2.0 - END ==========
             
             Entry savedEntry = entryService.createEntry(entry);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedEntry);
@@ -82,11 +249,16 @@ public class EntryController {
         }
     }
     
-    // ========== RELEASE 3.0 - START (Update Functionality) ==========
     @PutMapping("/entries/{id}")
     public ResponseEntity<?> updateEntry(@PathVariable Long id, @Valid @RequestBody Entry entryDetails) {
+        // Check toggle - if false, block the request
+        if (!enableUpdate) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Update feature is disabled");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+        
         try {
-           
             if (entryDetails.getAmount() == null || entryDetails.getDescription() == null || 
                 entryDetails.getDescription().trim().isEmpty()) {
                 Map<String, String> error = new HashMap<>();
@@ -94,14 +266,11 @@ public class EntryController {
                 return ResponseEntity.badRequest().body(error);
             }
             
-            
-           
             if (entryDetails.getDate() == null) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Date is required");
                 return ResponseEntity.badRequest().body(error);
             }
-           
             
             Entry updatedEntry = entryService.updateEntry(id, entryDetails);
             
@@ -143,8 +312,16 @@ public class EntryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+    
     @DeleteMapping("/entries")
     public ResponseEntity<?> deleteAllEntries() {
+        // Check toggle - if false, block the request
+        if (!enableDeleteAll) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Delete All feature is disabled");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+        
         try {
             entryService.deleteAllEntries();
             Map<String, String> response = new HashMap<>();

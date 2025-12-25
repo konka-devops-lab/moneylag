@@ -36,7 +36,6 @@ class EntryControllerTest {
     private ObjectMapper objectMapper;
 
 
-    /* -------------------- GET ALL -------------------- */
     @Test
     void testGetAllEntries() throws Exception {
         Entry e1 = new Entry(100.0, "Food", LocalDate.parse("2025-10-12"));
@@ -56,7 +55,6 @@ class EntryControllerTest {
     }
 
 
-    /* -------------------- GET BY ID -------------------- */
     @Test
     void testGetEntryByIdFound() throws Exception {
         Entry entry = new Entry(300.0, "Test Entry", LocalDate.parse("2025-10-25"));
@@ -99,15 +97,7 @@ class EntryControllerTest {
     }
 
 
-    /**
-     * IMPORTANT:
-     * Validation fails BEFORE controller is called.
-     * So Spring returns:
-     *   Status = 400
-     *   Body   = EMPTY
-     *
-     * We must check ONLY status, NOT $.error
-     */
+    
     @Test
     void testCreateEntryValidationFail() throws Exception {
         Entry invalid = new Entry(null, "", null);
@@ -120,7 +110,7 @@ class EntryControllerTest {
     }
 
 
-    /* -------------------- UPDATE ENTRY -------------------- */
+
     @Test
     void testUpdateEntrySuccess() throws Exception {
         Entry request = new Entry(800.0, "Updated", LocalDate.parse("2025-12-20"));
