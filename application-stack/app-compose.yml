@@ -9,12 +9,16 @@ services:
       MYSQL_ROOT_PASSWORD: siva
     ports:
       - "3306:3306"
+    restart: unless-stopped
     networks:
       - crud
 
   crud-redis:
     image: 384570460482.dkr.ecr.ap-south-1.amazonaws.com/redis:alpine3.22
     container_name: crud-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
     networks:
       - crud
 
