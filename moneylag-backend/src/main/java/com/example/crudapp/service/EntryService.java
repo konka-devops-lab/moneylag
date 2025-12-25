@@ -208,16 +208,183 @@
 //     }
 // }
 
+// package com.example.crudapp.service;
+
+// import com.example.crudapp.model.Entry;
+// import com.example.crudapp.repository.EntryRepository;
+// import com.fasterxml.jackson.core.JsonProcessingException;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.beans.factory.annotation.Value;
+// import org.springframework.data.redis.core.RedisTemplate;
+// import org.springframework.stereotype.Service;
+
+// import java.util.List;
+// import java.util.Optional;
+// import java.util.concurrent.TimeUnit;
+
+// @Service
+// public class EntryService {
+
+//     private static final Logger logger = LoggerFactory.getLogger(EntryService.class);
+//     private static final String ALL_ENTRIES_CACHE_KEY = "all_entries";
+//     private static final String ENTRY_CACHE_KEY_PREFIX = "entry_";
+//     private static final int CACHE_TTL = 60; // seconds
+
+//     @Autowired
+//     private EntryRepository entryRepository;
+
+//     @Autowired
+//     private RedisTemplate<String, String> redisTemplate;
+
+//     @Autowired
+//     private ObjectMapper objectMapper;
+
+//     // ================= FEATURE TOGGLES (ENV VARS) =================
+//     @Value("${FEATURE_UPDATE:true}")
+//     private boolean featureUpdateEnabled;
+
+//     @Value("${FEATURE_DELETE_ALL:true}")
+//     private boolean featureDeleteAllEnabled;
+//     // =============================================================
+
+//     public List<Entry> getAllEntries() {
+//         try {
+//             String cachedData = redisTemplate.opsForValue().get(ALL_ENTRIES_CACHE_KEY);
+
+//             if (cachedData != null) {
+//                 logger.info("Serving all entries from Redis cache");
+//                 return objectMapper.readValue(
+//                         cachedData,
+//                         objectMapper.getTypeFactory()
+//                                 .constructCollectionType(List.class, Entry.class)
+//                 );
+//             }
+
+//             List<Entry> entries = entryRepository.findAll();
+//             String jsonData = objectMapper.writeValueAsString(entries);
+//             redisTemplate.opsForValue().set(
+//                     ALL_ENTRIES_CACHE_KEY,
+//                     jsonData,
+//                     CACHE_TTL,
+//                     TimeUnit.SECONDS
+//             );
+
+//             return entries;
+
+//         } catch (Exception e) {
+//             logger.error("Cache error, falling back to DB", e);
+//             return entryRepository.findAll();
+//         }
+//     }
+
+//     public Entry getEntryById(Long id) {
+//         String cacheKey = ENTRY_CACHE_KEY_PREFIX + id;
+
+//         try {
+//             String cachedData = redisTemplate.opsForValue().get(cacheKey);
+
+//             if (cachedData != null) {
+//                 return objectMapper.readValue(cachedData, Entry.class);
+//             }
+
+//             Optional<Entry> entry = entryRepository.findById(id);
+
+//             if (entry.isPresent()) {
+//                 String jsonData = objectMapper.writeValueAsString(entry.get());
+//                 redisTemplate.opsForValue().set(cacheKey, jsonData, CACHE_TTL, TimeUnit.SECONDS);
+//                 return entry.get();
+//             }
+
+//             return null;
+
+//         } catch (Exception e) {
+//             logger.error("Cache error for entry {}", id, e);
+//             return entryRepository.findById(id).orElse(null);
+//         }
+//     }
+
+//     public Entry createEntry(Entry entry) {
+//         Entry savedEntry = entryRepository.save(entry);
+//         clearAllEntriesCache();
+//         return savedEntry;
+//     }
+
+//     public Entry updateEntry(Long id, Entry entryDetails) {
+
+//         // 🔒 FEATURE TOGGLE CHECK (SERVICE LEVEL)
+//         if (!featureUpdateEnabled) {
+//             logger.warn("Update feature is disabled");
+//             throw new RuntimeException("Update feature is disabled");
+//         }
+
+//         Optional<Entry> optionalEntry = entryRepository.findById(id);
+
+//         if (optionalEntry.isPresent()) {
+//             Entry existingEntry = optionalEntry.get();
+//             existingEntry.setAmount(entryDetails.getAmount());
+//             existingEntry.setDescription(entryDetails.getDescription());
+//             existingEntry.setDate(entryDetails.getDate());
+
+//             Entry updatedEntry = entryRepository.save(existingEntry);
+//             clearAllEntriesCache();
+//             clearEntryCache(id);
+//             return updatedEntry;
+//         }
+
+//         return null;
+//     }
+
+//     public boolean deleteEntry(Long id) {
+//         Optional<Entry> entry = entryRepository.findById(id);
+
+//         if (entry.isPresent()) {
+//             entryRepository.deleteById(id);
+//             clearAllEntriesCache();
+//             clearEntryCache(id);
+//             return true;
+//         }
+
+//         return false;
+//     }
+
+//     public void deleteAllEntries() {
+
+//         // 🔒 FEATURE TOGGLE CHECK (SERVICE LEVEL)
+//         if (!featureDeleteAllEnabled) {
+//             logger.warn("Delete-all feature is disabled");
+//             throw new RuntimeException("Delete-all feature is disabled");
+//         }
+
+//         entryRepository.deleteAll();
+//         clearAllEntriesCache();
+//     }
+
+//     private void clearAllEntriesCache() {
+//         try {
+//             redisTemplate.delete(ALL_ENTRIES_CACHE_KEY);
+//         } catch (Exception e) {
+//             logger.error("Error clearing all entries cache", e);
+//         }
+//     }
+
+//     private void clearEntryCache(Long id) {
+//         try {
+//             redisTemplate.delete(ENTRY_CACHE_KEY_PREFIX + id);
+//         } catch (Exception e) {
+//             logger.error("Error clearing cache for entry {}", id, e);
+//         }
+//     }
+// }
 package com.example.crudapp.service;
 
 import com.example.crudapp.model.Entry;
 import com.example.crudapp.repository.EntryRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -229,33 +396,29 @@ import java.util.concurrent.TimeUnit;
 public class EntryService {
 
     private static final Logger logger = LoggerFactory.getLogger(EntryService.class);
+
     private static final String ALL_ENTRIES_CACHE_KEY = "all_entries";
     private static final String ENTRY_CACHE_KEY_PREFIX = "entry_";
     private static final int CACHE_TTL = 60; // seconds
 
-    @Autowired
-    private EntryRepository entryRepository;
+    private final EntryRepository entryRepository;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    public EntryService(EntryRepository entryRepository,
+                        RedisTemplate<String, String> redisTemplate,
+                        ObjectMapper objectMapper) {
+        this.entryRepository = entryRepository;
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
+    }
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    // ================= FEATURE TOGGLES (ENV VARS) =================
-    @Value("${FEATURE_UPDATE:true}")
-    private boolean featureUpdateEnabled;
-
-    @Value("${FEATURE_DELETE_ALL:true}")
-    private boolean featureDeleteAllEnabled;
-    // =============================================================
+    /* -------------------- READ -------------------- */
 
     public List<Entry> getAllEntries() {
         try {
             String cachedData = redisTemplate.opsForValue().get(ALL_ENTRIES_CACHE_KEY);
-
             if (cachedData != null) {
-                logger.info("Serving all entries from Redis cache");
                 return objectMapper.readValue(
                         cachedData,
                         objectMapper.getTypeFactory()
@@ -264,18 +427,16 @@ public class EntryService {
             }
 
             List<Entry> entries = entryRepository.findAll();
-            String jsonData = objectMapper.writeValueAsString(entries);
             redisTemplate.opsForValue().set(
                     ALL_ENTRIES_CACHE_KEY,
-                    jsonData,
+                    objectMapper.writeValueAsString(entries),
                     CACHE_TTL,
                     TimeUnit.SECONDS
             );
-
             return entries;
 
         } catch (Exception e) {
-            logger.error("Cache error, falling back to DB", e);
+            logger.warn("Cache error, falling back to DB", e);
             return entryRepository.findAll();
         }
     }
@@ -285,88 +446,76 @@ public class EntryService {
 
         try {
             String cachedData = redisTemplate.opsForValue().get(cacheKey);
-
             if (cachedData != null) {
                 return objectMapper.readValue(cachedData, Entry.class);
             }
 
             Optional<Entry> entry = entryRepository.findById(id);
-
             if (entry.isPresent()) {
-                String jsonData = objectMapper.writeValueAsString(entry.get());
-                redisTemplate.opsForValue().set(cacheKey, jsonData, CACHE_TTL, TimeUnit.SECONDS);
-                return entry.get();
+                redisTemplate.opsForValue().set(
+                        cacheKey,
+                        objectMapper.writeValueAsString(entry.get()),
+                        CACHE_TTL,
+                        TimeUnit.SECONDS
+                );
             }
-
-            return null;
+            return entry.orElse(null);
 
         } catch (Exception e) {
-            logger.error("Cache error for entry {}", id, e);
+            logger.warn("Cache error for entry {}", id, e);
             return entryRepository.findById(id).orElse(null);
         }
     }
 
+    /* -------------------- WRITE -------------------- */
+
     public Entry createEntry(Entry entry) {
-        Entry savedEntry = entryRepository.save(entry);
+        Entry saved = entryRepository.save(entry);
         clearAllEntriesCache();
-        return savedEntry;
+        return saved;
     }
 
     public Entry updateEntry(Long id, Entry entryDetails) {
-
-        // 🔒 FEATURE TOGGLE CHECK (SERVICE LEVEL)
-        if (!featureUpdateEnabled) {
-            logger.warn("Update feature is disabled");
-            throw new RuntimeException("Update feature is disabled");
-        }
-
         Optional<Entry> optionalEntry = entryRepository.findById(id);
 
-        if (optionalEntry.isPresent()) {
-            Entry existingEntry = optionalEntry.get();
-            existingEntry.setAmount(entryDetails.getAmount());
-            existingEntry.setDescription(entryDetails.getDescription());
-            existingEntry.setDate(entryDetails.getDate());
-
-            Entry updatedEntry = entryRepository.save(existingEntry);
-            clearAllEntriesCache();
-            clearEntryCache(id);
-            return updatedEntry;
+        if (optionalEntry.isEmpty()) {
+            return null;
         }
 
-        return null;
+        Entry existing = optionalEntry.get();
+        existing.setAmount(entryDetails.getAmount());
+        existing.setDescription(entryDetails.getDescription());
+        existing.setDate(entryDetails.getDate());
+
+        Entry updated = entryRepository.save(existing);
+        clearAllEntriesCache();
+        clearEntryCache(id);
+        return updated;
     }
 
     public boolean deleteEntry(Long id) {
-        Optional<Entry> entry = entryRepository.findById(id);
-
-        if (entry.isPresent()) {
-            entryRepository.deleteById(id);
-            clearAllEntriesCache();
-            clearEntryCache(id);
-            return true;
+        if (!entryRepository.existsById(id)) {
+            return false;
         }
 
-        return false;
+        entryRepository.deleteById(id);
+        clearAllEntriesCache();
+        clearEntryCache(id);
+        return true;
     }
 
     public void deleteAllEntries() {
-
-        // 🔒 FEATURE TOGGLE CHECK (SERVICE LEVEL)
-        if (!featureDeleteAllEnabled) {
-            logger.warn("Delete-all feature is disabled");
-            throw new RuntimeException("Delete-all feature is disabled");
-        }
-
         entryRepository.deleteAll();
         clearAllEntriesCache();
     }
+
+    /* -------------------- CACHE HELPERS -------------------- */
 
     private void clearAllEntriesCache() {
         try {
             redisTemplate.delete(ALL_ENTRIES_CACHE_KEY);
         } catch (Exception e) {
-            logger.error("Error clearing all entries cache", e);
+            logger.warn("Failed to clear all entries cache", e);
         }
     }
 
@@ -374,7 +523,7 @@ public class EntryService {
         try {
             redisTemplate.delete(ENTRY_CACHE_KEY_PREFIX + id);
         } catch (Exception e) {
-            logger.error("Error clearing cache for entry {}", id, e);
+            logger.warn("Failed to clear cache for entry {}", id, e);
         }
     }
 }
