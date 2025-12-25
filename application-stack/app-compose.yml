@@ -11,7 +11,7 @@ services:
       - crud
 
   crud-redis:
-    image: redis:7
+    image: 384570460482.dkr.ecr.ap-south-1.amazonaws.com/redis:alpine3.22
     container_name: crud-redis
     networks:
       - crud
