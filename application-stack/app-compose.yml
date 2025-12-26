@@ -37,8 +37,8 @@ services:
     depends_on:
       - mysql
       - crud-redis
-    # ports:
-      # - "8080:8080"
+    ports:
+      - "8080:8080"
     restart: unless-stopped
     networks:
       - crud
