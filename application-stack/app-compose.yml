@@ -7,8 +7,8 @@ services:
       MYSQL_USER: crud
       MYSQL_PASSWORD: CrudApp@1
       MYSQL_ROOT_PASSWORD: siva
-    ports:
-      - "3306:3306"
+    # ports:
+    #   - "3306:3306"
     restart: unless-stopped
     networks:
       - crud
@@ -16,8 +16,8 @@ services:
   crud-redis:
     image: 384570460482.dkr.ecr.ap-south-1.amazonaws.com/redis:alpine3.22
     container_name: crud-redis
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
     restart: unless-stopped
     networks:
       - crud
@@ -37,8 +37,8 @@ services:
     depends_on:
       - mysql
       - crud-redis
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"
     restart: unless-stopped
     networks:
       - crud
@@ -47,7 +47,7 @@ services:
     image: crud-frontend:v1
     container_name: crud-frontend
     ports:
-      - "8081:80"
+      - "80:80"
     volumes:
       - ../nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../env.js:/usr/share/nginx/html/env.js:ro
