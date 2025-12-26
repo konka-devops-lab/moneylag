@@ -17,15 +17,15 @@ import {
 } from "recharts";
 
 
-// const ENABLE_UPDATE = window._env_?.ENABLE_UPDATE ?? true;
-// const ENABLE_DELETE_ALL = window._env_?.ENABLE_DELETE_ALL ?? true;
+const ENABLE_UPDATE = window._env_?.ENABLE_UPDATE ?? true;
+const ENABLE_DELETE_ALL = window._env_?.ENABLE_DELETE_ALL ?? true;
 
-const flag = (v) => v === true || v === "true";
+// const flag = (v) => v === true || v === "true";
 
-export const FEATURES = {
-  ENABLE_UPDATE: flag(window._env_?.ENABLE_UPDATE),
-  ENABLE_DELETE_ALL: flag(window._env_?.ENABLE_DELETE_ALL),
-};
+// export const FEATURES = {
+//   ENABLE_UPDATE: flag(window._env_?.ENABLE_UPDATE),
+//   ENABLE_DELETE_ALL: flag(window._env_?.ENABLE_DELETE_ALL),
+// };
 
 function App() {
   const [page, setPage] = useState(1);
