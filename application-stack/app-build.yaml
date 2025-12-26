@@ -1,9 +1,9 @@
 services:
-  # mysql:
-  #   build:
-  #     context: ../mysql
-  #     dockerfile: Dockerfile
-  #   image: crud-mysql:v1
+  mysql:
+    build:
+      context: ../mysql
+      dockerfile: Dockerfile
+    image: crud-mysql:v1
 
   crud-backend:
     build:
