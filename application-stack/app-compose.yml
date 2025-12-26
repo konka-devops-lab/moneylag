@@ -47,7 +47,7 @@ services:
     image: crud-frontend:v1
     container_name: crud-frontend
     ports:
-      - "80:80"
+      - "8081:80"
     volumes:
       - ../nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../env.js:/usr/share/nginx/html/env.js:ro
