@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FEATURE_FLAGS } from "../config/featureFlags";
 import {
   addEntry,
   getEntries,
@@ -16,9 +17,7 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-
-const ENABLE_UPDATE = window._env_?.ENABLE_UPDATE ?? true;
-const ENABLE_DELETE_ALL = window._env_?.ENABLE_DELETE_ALL ?? true;
+const { ENABLE_UPDATE, ENABLE_DELETE_ALL } = FEATURE_FLAGS;
 
 function App() {
   const [page, setPage] = useState(1);
