@@ -16,12 +16,9 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-/* ⭐ FEATURE TOGGLES (KEEPING EXACTLY AS YOU WANT) */
-// const ENABLE_UPDATE = process.env.REACT_APP_ENABLE_UPDATE === "true";
-// const ENABLE_DELETE_ALL = process.env.REACT_APP_ENABLE_DELETE_ALL === "true";
 
-const ENABLE_UPDATE = window._env_?.ENABLE_UPDATE === true;
-const ENABLE_DELETE_ALL = window._env_?.ENABLE_DELETE_ALL === true;
+const ENABLE_UPDATE = window._env_?.ENABLE_UPDATE ?? true;
+const ENABLE_DELETE_ALL = window._env_?.ENABLE_DELETE_ALL ?? true;
 
 function App() {
   const [page, setPage] = useState(1);
