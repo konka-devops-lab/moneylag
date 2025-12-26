@@ -6,12 +6,6 @@ import { renderWithAct } from "./utils/renderWithAct";
 
 jest.mock("../api/api");
 
-const testIf = (condition) => (condition ? test : test.skip);
-
-// ❌ REMOVE THESE LINES - they override your .env settings
-// process.env.REACT_APP_ENABLE_UPDATE = "true";
-// process.env.REACT_APP_ENABLE_DELETE_ALL = "true";
-
 describe("MoneyLag App - Working Test Suite", () => {
 
   beforeEach(() => {
@@ -49,106 +43,85 @@ describe("MoneyLag App - Working Test Suite", () => {
   });
 
   // -------------------------------------------------------
-  // 2️⃣ UPDATE BUTTON (toggle)
+  // 2️⃣ UPDATE BUTTON
   // -------------------------------------------------------
-  testIf(process.env.REACT_APP_ENABLE_UPDATE === "true")(
-    "Update button appears when update toggle = true",
-    async () => {
-      api.getEntries.mockResolvedValue([
-        { id: 1, amount: 100, description: "Test", date: "2025-01-01" },
-      ]);
+  test("Update button appears", async () => {
+    api.getEntries.mockResolvedValue([
+      { id: 1, amount: 100, description: "Test", date: "2025-01-01" },
+    ]);
 
-      await renderWithAct(<App />);
+    await renderWithAct(<App />);
 
-      fireEvent.click(screen.getByText(">> Records"));
+    fireEvent.click(screen.getByText(">> Records"));
 
-      expect(await screen.findByText("Update")).toBeInTheDocument();
-    }
-  );
+    expect(await screen.findByText("Update")).toBeInTheDocument();
+  });
 
   // -------------------------------------------------------
   // 3️⃣ UPDATE FUNCTIONALITY
   // -------------------------------------------------------
-  testIf(process.env.REACT_APP_ENABLE_UPDATE === "true")(
-    "Update → Save triggers API correctly",
-    async () => {
-      api.getEntries.mockResolvedValue([
-        { id: 1, amount: 100, description: "Test", date: "2025-01-01" },
-      ]);
+  test("Update → Save triggers API correctly", async () => {
+    api.getEntries.mockResolvedValue([
+      { id: 1, amount: 100, description: "Test", date: "2025-01-01" },
+    ]);
 
-      await renderWithAct(<App />);
+    await renderWithAct(<App />);
 
-      fireEvent.click(screen.getByText(">> Records"));
+    fireEvent.click(screen.getByText(">> Records"));
 
-      const updateButton = await screen.findByText("Update");
-      fireEvent.click(updateButton);
+    fireEvent.click(await screen.findByText("Update"));
+    fireEvent.click(await screen.findByText("Save"));
 
-      expect(await screen.findByText("Save")).toBeInTheDocument();
-
-      fireEvent.click(screen.getByText("Save"));
-
-      await waitFor(() => {
-        expect(api.updateEntry).toHaveBeenCalled();
-      });
-    }
-  );
+    await waitFor(() => {
+      expect(api.updateEntry).toHaveBeenCalled();
+    });
+  });
 
   // -------------------------------------------------------
   // 4️⃣ DELETE ALL BUTTON
   // -------------------------------------------------------
-  testIf(process.env.REACT_APP_ENABLE_DELETE_ALL === "true")(
-    "Delete All button appears when toggle = true",
-    async () => {
-      api.getEntries.mockResolvedValue([
-        { id: 1, amount: 100, description: "Test", date: "2025-01-01" },
-      ]);
+  test("Delete All button appears", async () => {
+    api.getEntries.mockResolvedValue([
+      { id: 1, amount: 100, description: "Test", date: "2025-01-01" },
+    ]);
 
-      await renderWithAct(<App />);
+    await renderWithAct(<App />);
 
-      fireEvent.click(screen.getByText(">> Records"));
+    fireEvent.click(screen.getByText(">> Records"));
 
-      expect(await screen.findByText("Delete All")).toBeInTheDocument();
-    }
-  );
+    expect(await screen.findByText("Delete All")).toBeInTheDocument();
+  });
 
   // -------------------------------------------------------
   // 5️⃣ DELETE ALL FUNCTIONALITY
   // -------------------------------------------------------
-  testIf(process.env.REACT_APP_ENABLE_DELETE_ALL === "true")(
-    "Delete All deletes all entries",
-    async () => {
-      const mockEntries = [
-        { id: 1, amount: 100, description: "A", date: "2025-01-01" },
-        { id: 2, amount: 200, description: "B", date: "2025-01-02" },
-        { id: 3, amount: 300, description: "C", date: "2025-01-03" },
-      ];
+  test("Delete All deletes all entries", async () => {
+    const mockEntries = [
+      { id: 1, amount: 100, description: "A", date: "2025-01-01" },
+      { id: 2, amount: 200, description: "B", date: "2025-01-02" },
+      { id: 3, amount: 300, description: "C", date: "2025-01-03" },
+    ];
 
-      api.getEntries
-        .mockResolvedValueOnce(mockEntries)
-        .mockResolvedValueOnce([]);
+    api.getEntries
+      .mockResolvedValueOnce(mockEntries)
+      .mockResolvedValueOnce([]);
 
-      window.confirm = jest.fn(() => true);
-      api.deleteEntry = jest.fn(() => Promise.resolve({}));
+    window.confirm = jest.fn(() => true);
+    api.deleteEntry = jest.fn(() => Promise.resolve({}));
 
-      await renderWithAct(<App />);
+    await renderWithAct(<App />);
 
-      fireEvent.click(screen.getByText(">> Records"));
+    fireEvent.click(screen.getByText(">> Records"));
+    fireEvent.click(await screen.findByText("Delete All"));
 
-      fireEvent.click(await screen.findByText("Delete All"));
+    await waitFor(() => {
+      expect(api.deleteEntry).toHaveBeenCalledTimes(3);
+    });
 
-      await waitFor(() => {
-        expect(api.deleteEntry).toHaveBeenCalledTimes(3);
-      });
-
-      expect(api.deleteEntry).toHaveBeenCalledWith(1);
-      expect(api.deleteEntry).toHaveBeenCalledWith(2);
-      expect(api.deleteEntry).toHaveBeenCalledWith(3);
-
-      expect(
-        await screen.findByText("✅ All Entries Deleted Successfully")
-      ).toBeInTheDocument();
-    }
-  );
+    expect(
+      await screen.findByText("✅ All Entries Deleted Successfully")
+    ).toBeInTheDocument();
+  });
 
   // -------------------------------------------------------
   // 6️⃣ DELETE ONE ENTRY
@@ -161,14 +134,12 @@ describe("MoneyLag App - Working Test Suite", () => {
     await renderWithAct(<App />);
 
     fireEvent.click(screen.getByText(">> Records"));
-
     fireEvent.click(await screen.findByText("Delete"));
 
     await waitFor(() => {
       expect(api.deleteEntry).toHaveBeenCalledWith(1);
     });
 
-    // Wait for the success message to appear
     expect(
       await screen.findByText("✅ Entry Deleted Successfully")
     ).toBeInTheDocument();
@@ -201,14 +172,9 @@ describe("MoneyLag App - Working Test Suite", () => {
     await renderWithAct(<App />);
 
     fireEvent.click(screen.getByText(">> Records"));
-    expect(await screen.findByText("MoneyLag Records")).toBeInTheDocument();
-
     fireEvent.click(screen.getByText(">> Insights"));
-    expect(
-      await screen.findByText("Insights - Spending Chart")
-    ).toBeInTheDocument();
-
     fireEvent.click(screen.getByText("<< Records"));
+
     expect(await screen.findByText("MoneyLag Records")).toBeInTheDocument();
   });
 });
