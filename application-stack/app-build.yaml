@@ -1,18 +1,18 @@
 services:
-  mysql:
+  # mysql:
+  #   build:
+  #     context: ../mysql
+  #     dockerfile: Dockerfile
+  #   image: crud-mysql:v1
+
+  crud-backend:
     build:
-      context: ../mysql
+      context: ../moneylag-backend
       dockerfile: Dockerfile
-    image: crud-mysql:v1
+    image: crud-backend:v1
 
-  # crud-backend:
-  #   build:
-  #     context: ../moneylag-backend
-  #     dockerfile: Dockerfile
-  #   image: crud-backend:v1
-
-  # crud-frontend:
-  #   build:
-  #     context: ../moneylag-frontend
-  #     dockerfile: Dockerfile
-  #   image: crud-frontend:v1
+  crud-frontend:
+    build:
+      context: ../moneylag-frontend
+      dockerfile: Dockerfile
+    image: crud-frontend:v1
