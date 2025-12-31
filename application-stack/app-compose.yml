@@ -45,8 +45,6 @@ services:
   moneylag-frontend:
     image: moneylag-frontend:v1
     container_name: moneylag-frontend
-    environment:
-      BACKEND_SERVICE: moneylag-backend
     ports:
       - "80:80"
     volumes:
