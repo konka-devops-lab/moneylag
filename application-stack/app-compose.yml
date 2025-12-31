@@ -1,5 +1,5 @@
 services:
-  mysql:
+  moneylag-mysql:
     image: moneylag-mysql:v1
     container_name: moneylag-mysql
     environment:
@@ -35,7 +35,7 @@ services:
       FEATURE_UPDATE: "true"
       FEATURE_DELETE_ALL: "true"
     depends_on:
-      - moneylagmysql
+      - moneylag-mysql
       - moneylag-redis
     ports:
       - "8080:8080"
