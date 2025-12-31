@@ -1,60 +1,60 @@
 services:
   mysql:
-    image: crud-mysql:v1
-    container_name: crud-mysql
+    image: moneylag-mysql:v1
+    container_name: moneylag-mysql
     environment:
-      MYSQL_DATABASE: crud_app
-      MYSQL_USER: crud
-      MYSQL_PASSWORD: CrudApp@1
+      MYSQL_DATABASE: moneylag_app
+      MYSQL_USER: moneylag
+      MYSQL_PASSWORD: moneylagApp@1
       MYSQL_ROOT_PASSWORD: siva
     # ports:
     #   - "3306:3306"
     restart: unless-stopped
     networks:
-      - crud
+      - moneylag
 
-  crud-redis:
+  moneylag-redis:
     image: 384570460482.dkr.ecr.ap-south-1.amazonaws.com/redis:alpine3.22
-    container_name: crud-redis
+    container_name: moneylag-redis
     # ports:
     #   - "6379:6379"
     restart: unless-stopped
     networks:
-      - crud
+      - moneylag
 
-  crud-backend:
-    image: crud-backend:v1
-    container_name: crud-backend
+  moneylag-backend:
+    image: moneylag-backend:v1
+    container_name: moneylag-backend
     environment:
-      DB_HOST: crud-mysql
-      DB_NAME: crud_app
-      DB_USER: crud
-      DB_PASSWORD: CrudApp@1
-      REDIS_HOST: crud-redis
+      DB_HOST: moneylag-mysql
+      DB_NAME: moneylag_app
+      DB_USER: moneylag
+      DB_PASSWORD: moneylagApp@1
+      REDIS_HOST: moneylag-redis
       REDIS_SSL: "false"
       FEATURE_UPDATE: "true"
       FEATURE_DELETE_ALL: "true"
     depends_on:
-      - mysql
-      - crud-redis
+      - moneylagmysql
+      - moneylag-redis
     ports:
       - "8080:8080"
     restart: unless-stopped
     networks:
-      - crud
-  crud-frontend:
-    image: crud-frontend:v1
-    container_name: crud-frontend
+      - moneylag
+  moneylag-frontend:
+    image: moneylag-frontend:v1
+    container_name: moneylag-frontend
     ports:
       - "80:80"
     volumes:
       - ../nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../env.js:/usr/share/nginx/html/env.js:ro
     depends_on:
-      - crud-backend
+      - moneylag-backend
     restart: unless-stopped
     networks:
-      - crud
+      - moneylag
 networks:
-  crud:
+  moneylag:
     driver: bridge
